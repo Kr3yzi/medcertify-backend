@@ -83,6 +83,7 @@ const nonces = new Map();
 // Generate nonce endpoint
 app.post('/api/generate-nonce', async (req, res) => {
   try {
+    console.log('BODY:', req.body);
     const { address } = req.body;
     if (!ethers.isAddress(address)) {
       return res.status(400).json({ error: 'Invalid Ethereum address' });
