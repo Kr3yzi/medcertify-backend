@@ -2,13 +2,13 @@
   "name": "medcert-backend",
   "version": "1.0.0",
   "description": "Blockchain-based health certificate system",
-  "main": "backend/server.js",
+  "main": "server.js",
   "scripts": {
     "test": "hardhat test",
     "compile": "hardhat compile",
     "deploy:sepolia": "hardhat run scripts/deploy.js --network sepolia",
-    "start": "node backend/server.js",
-    "dev": "nodemon backend/server.js"
+    "start": "node server.js",
+    "dev": "nodemon server.js"
   },
   "dependencies": {
     "@openzeppelin/contracts": "^5.0.1",
