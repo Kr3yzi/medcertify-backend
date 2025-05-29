@@ -56,7 +56,7 @@ const limiter = rateLimit({
   max: 100, // Limit each IP to 100 requests per windowMs
   message: 'Too many requests from this IP, please try again later.'
 });
-app.use('/api/', limiter);
+app.use('/', limiter);
 
 // Logging
 const logger = winston.createLogger({
@@ -81,7 +81,7 @@ app.use(morgan('combined'));
 const nonces = new Map();
 
 // Generate nonce endpoint
-app.post('/api/generate-nonce', async (req, res) => {
+app.post('/generate-nonce', async (req, res) => {
   try {
     console.log('BODY:', req.body);
     const { address } = req.body;
@@ -100,7 +100,7 @@ app.post('/api/generate-nonce', async (req, res) => {
 });
 
 // Verify signature endpoint
-app.post('/api/verify-signature', async (req, res) => {
+app.post('/verify-signature', async (req, res) => {
   try {
     const { address, signature, nonce } = req.body;
     
@@ -177,7 +177,7 @@ const ROLES = {
 };
 
 // Protected check-role endpoint
-app.get('/api/check-role', verifyToken, async (req, res) => {
+app.get('/check-role', verifyToken, async (req, res) => {
   try {
     const { address } = req.user;
     const roles = {};
@@ -206,7 +206,7 @@ const UserRole = mongoose.model('UserRole', new mongoose.Schema({
   active: { type: Boolean, default: true }
 }));
 
-app.post('/api/assign-role', verifyToken, async (req, res) => {
+app.post('/assign-role', verifyToken, async (req, res) => {
   try {
     const address = sanitizeAddress(req.body.address);
     const role = sanitizeRole(req.body.role);
@@ -246,7 +246,7 @@ app.post('/api/assign-role', verifyToken, async (req, res) => {
   }
 });
 
-app.post('/api/revoke-role', verifyToken, async (req, res) => {
+app.post('/revoke-role', verifyToken, async (req, res) => {
   try {
     const address = sanitizeAddress(req.body.address);
     const role = sanitizeRole(req.body.role);
@@ -435,8 +435,8 @@ const AuditLog = mongoose.model('AuditLog', new mongoose.Schema({
   extra: Object
 }));
 
-// POST /api/register-patient (Receptionist)
-app.post('/api/register-patient',
+// POST /register-patient (Receptionist)
+app.post('/register-patient',
   verifyToken,
   requireRole('RECEPTIONIST'),
   body('address').isString(),
@@ -469,8 +469,8 @@ app.post('/api/register-patient',
   }
 );
 
-// PATCH /api/patients/:id/vitals (Nurse)
-app.patch('/api/patients/:id/vitals',
+// PATCH /patients/:id/vitals (Nurse)
+app.patch('/patients/:id/vitals',
   verifyToken,
   requireRole('NURSE'),
   [
@@ -524,8 +524,8 @@ app.patch('/api/patients/:id/vitals',
     }
   }
 );
-// GET /api/patient/verify
-app.get('/api/patient/verify', verifyToken, async (req, res) => {
+// GET /patient/verify
+app.get('/patient/verify', verifyToken, async (req, res) => {
   try {
     const { address } = req.user;
     const patient = await Patient.findOne({ address: address.toLowerCase() });
@@ -535,8 +535,8 @@ app.get('/api/patient/verify', verifyToken, async (req, res) => {
   }
 });
 
-// GET /api/patients/:id/vitals
-app.get('/api/patients/:id/vitals',
+// GET /patients/:id/vitals
+app.get('/patients/:id/vitals',
   verifyToken,
   allowSelfOrRoles('NURSE', 'DOCTOR', 'ADMIN'),
   async (req, res) => {
@@ -559,8 +559,8 @@ app.get('/api/patients/:id/vitals',
   }
 );
 
-// GET /api/patients/:id/tests - List all tests for a patient (minimal metadata)
-app.get('/api/patients/:id/tests',
+// GET /patients/:id/tests - List all tests for a patient (minimal metadata)
+app.get('/patients/:id/tests',
   verifyToken,
   allowSelfOrRoles('RECEPTIONIST', 'NURSE', 'DOCTOR', 'ADMIN'),
   async (req, res) => {
@@ -586,8 +586,8 @@ app.get('/api/patients/:id/tests',
   }
 );
 
-// GET /api/patients/:id/tests/:testId - Get a single test with decoded result from IPFS
-app.get('/api/patients/:id/tests/:testId', verifyToken, requireAnyRole('DOCTOR', 'ADMIN'), async (req, res) => {
+// GET /patients/:id/tests/:testId - Get a single test with decoded result from IPFS
+app.get('/patients/:id/tests/:testId', verifyToken, requireAnyRole('DOCTOR', 'ADMIN'), async (req, res) => {
   try {
     const address = req.params.id.toLowerCase();
     const testId = req.params.testId;
@@ -637,7 +637,7 @@ app.get('/api/patients/:id/tests/:testId', verifyToken, requireAnyRole('DOCTOR',
 });
 
 // Update the test results endpoint with sanitization
-app.get('/api/patients/:id/tests/:testId/results',
+app.get('/patients/:id/tests/:testId/results',
   verifyToken,
   requireAnyRole('DOCTOR', 'ADMIN'),
   async (req, res) => {
@@ -681,8 +681,8 @@ app.get('/api/patients/:id/tests/:testId/results',
   }
 );
 
-// POST /api/patients/:id/tests (for vaccines)
-app.post('/api/patients/:id/tests',
+// POST /patients/:id/tests (for vaccines)
+app.post('/patients/:id/tests',
   verifyToken,
   requireAnyRole('RECEPTIONIST'),
   async (req, res) => {
@@ -735,7 +735,7 @@ app.post('/api/patients/:id/tests',
 );
 
 // Doctor/ADMIN: Get patient full details (demographics, diagnosis, tests, vitals)
-app.get('/api/patients/:id',
+app.get('/patients/:id',
   verifyToken,
   allowSelfOrRoles('RECEPTIONIST', 'NURSE', 'DOCTOR', 'ADMIN'),
   async (req, res) => {
@@ -773,8 +773,8 @@ app.get('/api/patients/:id',
   }
 );
 
-// GET /api/patients/:id/certificates – List all certificates for a patient
-app.get('/api/patients/:id/certificates', verifyToken, allowSelfOrRoles('DOCTOR', 'ADMIN'), async (req, res) => {
+// GET /patients/:id/certificates – List all certificates for a patient
+app.get('/patients/:id/certificates', verifyToken, allowSelfOrRoles('DOCTOR', 'ADMIN'), async (req, res) => {
   try {
     const patient = req.params.id.toLowerCase();
     const certs = await HealthCertificate.find({ patient });
@@ -794,8 +794,8 @@ app.get('/api/patients/:id/certificates', verifyToken, allowSelfOrRoles('DOCTOR'
   }
 });
 
-// DELETE /api/certificates/:id – Delete certificate (admin only)
-app.delete('/api/certificates/:id', verifyToken, requireRole('ADMIN'), async (req, res) => {
+// DELETE /certificates/:id – Delete certificate (admin only)
+app.delete('/certificates/:id', verifyToken, requireRole('ADMIN'), async (req, res) => {
   try {
     const cert = await HealthCertificate.findByIdAndDelete(req.params.id);
     if (!cert) return res.status(404).json({ error: 'Certificate not found' });
@@ -815,8 +815,8 @@ app.delete('/api/certificates/:id', verifyToken, requireRole('ADMIN'), async (re
   }
 });
 
-// GET /api/patients - List all patients (doctor/admin only)
-app.get('/api/patients',
+// GET /patients - List all patients (doctor/admin only)
+app.get('/patients',
   verifyToken,
   requireAnyRole('DOCTOR', 'ADMIN'),
   async (req, res) => {
@@ -911,7 +911,7 @@ async function decryptData(encryptedData, testId, patientAddress) {
 }
 
 // Update test results endpoint with sanitization
-app.patch('/api/patients/:id/tests/:testId',
+app.patch('/patients/:id/tests/:testId',
   verifyToken,
   requireAnyRole('NURSE', 'DOCTOR', 'ADMIN'),
   async (req, res) => {
@@ -1001,10 +1001,10 @@ function allowSelfOrRoles(...roles) {
   };
 }
 
-// POST /api/issue-certificate (combined diagnosis + cert metadata)
-app.post('/api/issue-certificate', verifyToken, async (req, res) => {
+// POST /issue-certificate (combined diagnosis + cert metadata)
+app.post('/issue-certificate', verifyToken, async (req, res) => {
   try {
-    console.log('POST /api/issue-certificate body:', req.body);
+    console.log('POST /issue-certificate body:', req.body);
     let { patient, issuedBy, certType, attestation, testId, ipfsCid } = req.body;
     const { ethers } = require('ethers');
     // If ipfsCid is not provided, generate and upload the certificate file to IPFS
@@ -1088,13 +1088,13 @@ app.post('/api/issue-certificate', verifyToken, async (req, res) => {
     );
     res.json({ certHash, ipfsCid });
   } catch (err) {
-    console.error('Error in /api/issue-certificate:', err);
+    console.error('Error in /issue-certificate:', err);
     res.status(500).json({ error: 'Failed to save certificate' });
   }
 });
 
 // PATCH endpoint to add signature after certHash is returned
-app.patch('/api/issue-certificate/:certHash/signature', verifyToken, async (req, res) => {
+app.patch('/issue-certificate/:certHash/signature', verifyToken, async (req, res) => {
   try {
     const { certHash } = req.params;
     const { signature } = req.body;
@@ -1107,12 +1107,12 @@ app.patch('/api/issue-certificate/:certHash/signature', verifyToken, async (req,
     if (!cert) return res.status(404).json({ error: 'Certificate not found' });
     res.json({ success: true, cert });
   } catch (err) {
-    console.error('Error in PATCH /api/issue-certificate/:certHash/signature:', err);
+    console.error('Error in PATCH /issue-certificate/:certHash/signature:', err);
     res.status(500).json({ error: 'Failed to update signature' });
   }
 });
 
-app.post('/api/verify-certificate', async (req, res) => {
+app.post('/verify-certificate', async (req, res) => {
   try {
     const { patientAddress, certHash } = req.body;
     if (!patientAddress || !certHash) {
@@ -1168,13 +1168,13 @@ app.post('/api/verify-certificate', async (req, res) => {
       cid: cert.ipfsCid
     });
   } catch (err) {
-    console.error('Error in /api/verify-certificate:', err);
+    console.error('Error in /verify-certificate:', err);
     res.status(500).json({ error: 'Verification failed' });
   }
 });
 
-// PATCH /api/certificates/:certHash/tx - Update transaction hash for a certificate
-app.patch('/api/certificates/:certHash/tx', verifyToken, async (req, res) => {
+// PATCH /certificates/:certHash/tx - Update transaction hash for a certificate
+app.patch('/certificates/:certHash/tx', verifyToken, async (req, res) => {
   try {
     const { certHash } = req.params;
     const { transactionHash } = req.body;
@@ -1191,8 +1191,8 @@ app.patch('/api/certificates/:certHash/tx', verifyToken, async (req, res) => {
   }
 });
 
-// --- GET /api/audit-logs (Admin only, paginated, filterable) ---
-app.get('/api/audit-logs', verifyToken, requireRole('ADMIN'), async (req, res) => {
+// --- GET /audit-logs (Admin only, paginated, filterable) ---
+app.get('/audit-logs', verifyToken, requireRole('ADMIN'), async (req, res) => {
   try {
     const {
       type,
@@ -1246,8 +1246,8 @@ app.get('/api/audit-logs', verifyToken, requireRole('ADMIN'), async (req, res) =
   }
 });
 
-// GET /api/patients/:id/certificates/:certHash/ - Fetch and decrypt a certificate for a patient
-app.get('/api/patients/:id/certificates/:certHash/', verifyToken, allowSelfOrRoles('DOCTOR', 'ADMIN'), async (req, res) => {
+// GET /patients/:id/certificates/:certHash/ - Fetch and decrypt a certificate for a patient
+app.get('/patients/:id/certificates/:certHash/', verifyToken, allowSelfOrRoles('DOCTOR', 'ADMIN'), async (req, res) => {
   res.set('Cache-Control', 'no-store');
   console.log('CERT ENDPOINT HIT', req.params.id, req.params.certHash, new Date());
   try {
