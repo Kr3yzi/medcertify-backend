@@ -1,0 +1,37 @@
+{
+  "name": "medcert-backend",
+  "version": "1.0.0",
+  "description": "Blockchain-based health certificate system",
+  "main": "backend/server.js",
+  "scripts": {
+    "test": "hardhat test",
+    "compile": "hardhat compile",
+    "deploy:sepolia": "hardhat run scripts/deploy.js --network sepolia",
+    "start": "node backend/server.js",
+    "dev": "nodemon backend/server.js"
+  },
+  "dependencies": {
+    "@openzeppelin/contracts": "^5.0.1",
+    "@pinata/sdk": "^1.1.23",
+    "axios": "^1.9.0",
+    "cors": "^2.8.5",
+    "date-fns": "^4.1.0",
+    "ethers": "^6.11.1",
+    "express": "^4.18.2",
+    "express-rate-limit": "^7.5.0",
+    "express-validator": "^7.2.1",
+    "helmet": "^7.2.0",
+    "jsonwebtoken": "^9.0.2",
+    "mongoose": "^8.14.2",
+    "morgan": "^1.10.0",
+    "node-fetch": "^3.3.2",
+    "react-icons": "^5.5.0",
+    "winston": "^3.17.0"
+  },
+  "devDependencies": {
+    "@nomicfoundation/hardhat-toolbox": "^4.0.0",
+    "dotenv": "^16.5.0",
+    "hardhat": "^2.19.4",
+    "nodemon": "^3.0.3"
+  }
+}
